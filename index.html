@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🌟 João Lucas veio te abençoar 🌟</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a0533 0%, #3d0f6b 40%, #6b1fa8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Georgia', serif;
+            overflow: hidden;
+        }
+
+        #fireworks-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+        }
+
+        /* floating bg stars */
+        .bg-star {
+            position: fixed;
+            pointer-events: none;
+            animation: twinkle var(--d) ease-in-out infinite;
+            animation-delay: var(--delay);
+            z-index: 0;
+        }
+
+        /* ── MAIN SCREEN ── */
+        #main-screen {
+            text-align: center;
+            z-index: 1;
+            padding: 2rem 1.5rem;
+            max-width: 90vw;
+        }
+
+        .main-title {
+            font-size: clamp(1.6rem, 6.5vw, 3.2rem);
+            color: #FFD700;
+            text-shadow: 0 0 25px rgba(255,215,0,0.8), 2px 2px 6px rgba(0,0,0,0.6);
+            margin: 0 0 0.6rem;
+            line-height: 1.25;
+        }
+
+        .main-sub {
+            font-size: clamp(0.95rem, 3.5vw, 1.3rem);
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 2.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+            color: #3d0060;
+            border: none;
+            padding: clamp(0.9rem,3vw,1.3rem) clamp(1.8rem,6vw,3rem);
+            font-size: clamp(1rem, 4.2vw, 1.5rem);
+            font-weight: bold;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 6px 30px rgba(255,165,0,0.55), 0 0 0 0 rgba(255,215,0,0.4);
+            animation: pulse-btn 2s ease-in-out infinite;
+            font-family: 'Georgia', serif;
+            transition: transform 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active { transform: scale(0.96); }
+
+        /* ── BLESSING SCREEN ── */
+        #blessing-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem 1.5rem;
+            z-index: 2;
+            animation: fadeZoom 0.9s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        .parabens {
+            font-size: clamp(2.2rem, 9vw, 5rem);
+            font-weight: bold;
+            text-shadow: 0 0 40px rgba(255,215,0,1), 2px 2px 6px rgba(0,0,0,0.5);
+            animation: rainbow 1.8s linear infinite;
+            margin-bottom: 0.4rem;
+        }
+
+        .row-emoji { font-size: clamp(2rem, 8vw, 4rem); margin: 0.4rem 0; }
+
+        .blessed-msg {
+            font-size: clamp(1.4rem, 5.5vw, 2.5rem);
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255,255,255,0.7);
+            line-height: 1.4;
+            margin: 0.8rem 0;
+        }
+
+        .blessed-msg span {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255,215,0,0.9);
+        }
+
+        .love-msg {
+            font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+            color: rgba(255,255,255,0.7);
+            font-style: italic;
+            margin-top: 1.2rem;
+        }
+
+        /* sparkle on tap */
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            animation: pop-out 0.9s ease-out forwards;
+        }
+
+        /* ── KEYFRAMES ── */
+        @keyframes float {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(-18px); }
+        }
+        @keyframes twinkle {
+            0%,100% { opacity:0.25; transform:scale(0.7); }
+            50%      { opacity:1;    transform:scale(1.3); }
+        }
+        @keyframes pulse-btn {
+            0%,100% { box-shadow: 0 6px 30px rgba(255,165,0,.55), 0 0 0  0 rgba(255,215,0,.4); }
+            50%      { box-shadow: 0 6px 30px rgba(255,165,0,.55), 0 0 0 18px rgba(255,215,0,0); }
+        }
+        @keyframes fadeZoom {
+            from { opacity:0; transform:scale(0.6); }
+            to   { opacity:1; transform:scale(1);   }
+        }
+        @keyframes rainbow {
+            0%   { color:#FFD700; }
+            16%  { color:#FF6B9D; }
+            33%  { color:#6BCFFF; }
+            50%  { color:#7BFF6B; }
+            66%  { color:#FF9F6B; }
+            83%  { color:#D06BFF; }
+            100% { color:#FFD700; }
+        }
+        @keyframes pop-out {
+            0%   { opacity:1; transform:scale(0.5) translateY(0); }
+            100% { opacity:0; transform:scale(2)   translateY(-60px); }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="fireworks-canvas"></canvas>
+
+<!-- ── INITIAL SCREEN ── -->
+<div id="main-screen">
+    <h1 class="main-title">João Lucas<br>veio te abençoar</h1>
+    <p class="main-sub">✨ uma mensagem muito especial pra você ✨</p>
+    <button class="btn" onclick="activate()">🙏 Clica para ser abençoada 🙏</button>
+</div>
+
+<!-- ── BLESSING SCREEN ── -->
+<div id="blessing-screen">
+    <div class="row-emoji">🎊🎉🎊</div>
+    <div class="parabens">PARABÉNS!!</div>
+    <div class="row-emoji">✨🌟💫🌟✨</div>
+    <p class="blessed-msg">Você está<br><span>abençoada</span><br>e <span>sem dor!!</span> 💖</p>
+    <div class="row-emoji">🙌🏻🕊️🙌🏻</div>
+    <p class="love-msg">com muito amor e bênçãos<br>do João Lucas 💜</p>
+</div>
+
+<script>
+// ──────────────────────────────────────────
+//  BACKGROUND STARS
+// ──────────────────────────────────────────
+(function spawnStars() {
+    const emojis = ['⭐','✨','🌟','💫','🪐'];
+    for (let i = 0; i < 28; i++) {
+        const el = document.createElement('div');
+        el.className = 'bg-star';
+        el.textContent = emojis[i % emojis.length];
+        const size = (Math.random() * 1.2 + 0.5).toFixed(2);
+        el.style.cssText = `
+            left:${(Math.random()*100).toFixed(1)}%;
+            top:${(Math.random()*100).toFixed(1)}%;
+            font-size:${size}rem;
+            --d:${(Math.random()*3+2).toFixed(1)}s;
+            --delay:${(Math.random()*4).toFixed(1)}s;
+        `;
+        document.body.appendChild(el);
+    }
+})();
+
+// ──────────────────────────────────────────
+//  MUSIC  (Web Audio API — pop song with chords, melody, bass)
+// ──────────────────────────────────────────
+function startMusic() {
+    try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+
+        const master = ac.createGain();
+        master.gain.value = 0.72;
+        master.connect(ac.destination);
+
+        function makeReverb(dur, decay) {
+            const len = ac.sampleRate * dur;
+            const buf = ac.createBuffer(2, len, ac.sampleRate);
+            for (let ch = 0; ch < 2; ch++) {
+                const d = buf.getChannelData(ch);
+                for (let i = 0; i < len; i++)
+                    d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+            }
+            const conv = ac.createConvolver();
+            conv.buffer = buf;
+            return conv;
+        }
+        const reverb = makeReverb(2.2, 2.5);
+        const rvGain = ac.createGain();
+        rvGain.gain.value = 0.28;
+        reverb.connect(rvGain);
+        rvGain.connect(master);
+
+        // Frequencies
+        const hz = {
+            C3:130.81,D3:146.83,E3:164.81,F3:174.61,G3:196.00,A3:220.00,B3:246.94,
+            C4:261.63,D4:293.66,E4:329.63,F4:349.23,G4:392.00,A4:440.00,B4:493.88,
+            C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,A5:880.00,B5:987.77,
+            C6:1046.50,D6:1174.66,E6:1318.51,
+        };
+
+        const BPM = 108;
+        const b = 60 / BPM; // seconds per beat
+
+        // Bell/piano lead — fast attack, natural decay
+        function bell(freq, t, beats, vol = 0.26) {
+            const o  = ac.createOscillator();
+            const o2 = ac.createOscillator();
+            const g  = ac.createGain();
+            const g2 = ac.createGain();
+
+            o.type  = 'sine';   o.frequency.value  = freq;
+            o2.type = 'triangle'; o2.frequency.value = freq * 2;
+
+            const end = t + beats * b;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(vol, t + 0.018);
+            g.gain.exponentialRampToValueAtTime(vol * 0.45, t + 0.18);
+            g.gain.exponentialRampToValueAtTime(0.0001, end);
+
+            g2.gain.setValueAtTime(0, t);
+            g2.gain.linearRampToValueAtTime(vol * 0.22, t + 0.01);
+            g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+
+            o.connect(g);   g.connect(master);  g.connect(reverb);
+            o2.connect(g2); g2.connect(master);
+            o.start(t);  o.stop(end + 0.05);
+            o2.start(t); o2.stop(t + 0.3);
+        }
+
+        // Soft pad for chords — slow attack, sustain
+        function pad(freqs, t, beats, vol = 0.065) {
+            freqs.forEach(f => {
+                const o = ac.createOscillator();
+                const g = ac.createGain();
+                o.type = 'sine';
+                o.frequency.value = f;
+                const end = t + beats * b;
+                g.gain.setValueAtTime(0, t);
+                g.gain.linearRampToValueAtTime(vol, t + 0.35);
+                g.gain.setValueAtTime(vol, end - 0.25);
+                g.gain.linearRampToValueAtTime(0, end);
+                o.connect(g); g.connect(reverb);
+                o.start(t); o.stop(end + 0.05);
+            });
+        }
+
+        // Punchy bass
+        function bass(freq, t, beats, vol = 0.2) {
+            const o = ac.createOscillator();
+            const g = ac.createGain();
+            o.type = 'triangle';
+            o.frequency.value = freq;
+            const end = t + beats * b;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(vol, t + 0.04);
+            g.gain.exponentialRampToValueAtTime(vol * 0.6, t + 0.2);
+            g.gain.linearRampToValueAtTime(0, end);
+            o.connect(g); g.connect(master);
+            o.start(t); o.stop(end + 0.05);
+        }
+
+        // I–V–vi–IV in C major
+        const chords = {
+            C:  [hz.C4, hz.E4, hz.G4],
+            G:  [hz.G3, hz.B3, hz.D4],
+            Am: [hz.A3, hz.C4, hz.E4],
+            F:  [hz.F3, hz.A3, hz.C4],
+        };
+        const bassHz = { C: hz.C3, G: hz.G3, Am: hz.A3, F: hz.F3 };
+
+        // 8 bars of chord sequence, 4 beats each
+        const seq = ['C','G','Am','F','C','G','Am','F'];
+
+        // Catchy uplifting melody (32 beats total)
+        const mel = [
+            // Bar 1 — C
+            [hz.G5,1],[hz.E5,0.5],[hz.G5,0.5],[hz.C6,1],[hz.A5,0.5],[hz.G5,0.5],
+            // Bar 2 — G
+            [hz.G5,1],[hz.B5,0.5],[hz.D6,0.5],[hz.B5,1],[hz.A5,0.5],[hz.G5,0.5],
+            // Bar 3 — Am
+            [hz.A5,1],[hz.G5,0.5],[hz.E5,0.5],[hz.F5,1],[hz.E5,0.5],[hz.D5,0.5],
+            // Bar 4 — F
+            [hz.E5,1.5],[hz.D5,0.5],[hz.C5,2],
+            // Bar 5 — C (builds up)
+            [hz.E5,0.5],[hz.G5,0.5],[hz.A5,0.5],[hz.C6,0.5],[hz.B5,1],[hz.G5,0.5],[hz.E5,0.5],
+            // Bar 6 — G (climax)
+            [hz.D5,0.5],[hz.G5,0.5],[hz.B5,0.5],[hz.D6,0.5],[hz.C6,1],[hz.B5,0.5],[hz.G5,0.5],
+            // Bar 7 — Am
+            [hz.C6,1],[hz.A5,0.5],[hz.G5,0.5],[hz.F5,1],[hz.E5,0.5],[hz.D5,0.5],
+            // Bar 8 — F → resolve
+            [hz.A5,1],[hz.G5,0.5],[hz.F5,0.5],[hz.E5,1],[hz.C5,1.5],[0,0.5],
+        ];
+
+        function scheduleLoop(start) {
+            // Chords + bass
+            seq.forEach((chord, i) => {
+                const t = start + i * 4 * b;
+                pad(chords[chord], t, 4);
+                bass(bassHz[chord], t,          1.8);
+                bass(bassHz[chord], t + 2 * b,  1.6, 0.15);
+            });
+
+            // Melody
+            let t = start;
+            mel.forEach(([f, beats]) => {
+                if (f > 0) bell(f, t, beats);
+                t += beats * b;
+            });
+
+            const total = seq.length * 4 * b;
+            setTimeout(() => scheduleLoop(start + total), (total - 0.6) * 1000);
+        }
+
+        scheduleLoop(ac.currentTime + 0.12);
+
+    } catch(e) { /* audio blocked — silently ignore */ }
+}
+
+// ──────────────────────────────────────────
+//  FIREWORKS
+// ──────────────────────────────────────────
+const canvas = document.getElementById('fireworks-canvas');
+const ctx    = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+    canvas.width  = innerWidth;
+    canvas.height = innerHeight;
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 9 + 3;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.alpha = 1;
+        this.size  = Math.random() * 4 + 2;
+    }
+    tick() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.18;
+        this.vx *= 0.98;
+        this.alpha -= 0.017;
+        this.size  *= 0.97;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(this.alpha, 0);
+        ctx.fillStyle   = this.color;
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+const COLORS = ['#FFD700','#FF6B9D','#6BCFFF','#7BFF6B','#FF9F6B','#D06BFF','#FF4500','#00FFD1'];
+
+function burst(x, y) {
+    const c = COLORS[Math.floor(Math.random() * COLORS.length)];
+    for (let i = 0; i < 90; i++) particles.push(new Particle(x, y, c));
+}
+
+function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => { p.tick(); p.draw(); });
+    requestAnimationFrame(render);
+}
+
+function launchFireworks() {
+    canvas.style.display = 'block';
+    resizeCanvas();
+    render();
+
+    // initial barrage
+    let count = 0;
+    const barrage = setInterval(() => {
+        burst(Math.random() * canvas.width, Math.random() * canvas.height * 0.65);
+        if (++count >= 20) clearInterval(barrage);
+    }, 250);
+
+    // continuous slower bursts
+    setInterval(() => {
+        burst(Math.random() * canvas.width, Math.random() * canvas.height * 0.7);
+    }, 1400);
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+// ──────────────────────────────────────────
+//  SPARKLES ON TOUCH / CLICK
+// ──────────────────────────────────────────
+function spawnSparkles(x, y) {
+    const pool = ['✨','⭐','🌟','💫','💖','🎊','🎉'];
+    for (let i = 0; i < 4; i++) {
+        const el = document.createElement('div');
+        el.className  = 'sparkle';
+        el.textContent = pool[Math.floor(Math.random() * pool.length)];
+        el.style.cssText = `
+            left:${x + (Math.random()-0.5)*70}px;
+            top:${y  + (Math.random()-0.5)*70}px;
+            font-size:${(Math.random()*1.4+0.8).toFixed(1)}rem;
+        `;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 950);
+    }
+}
+
+// ──────────────────────────────────────────
+//  MAIN ACTIVATION
+// ──────────────────────────────────────────
+function activate() {
+    document.getElementById('main-screen').style.display = 'none';
+
+    const bs = document.getElementById('blessing-screen');
+    bs.style.display = 'flex';
+
+    startMusic();
+    launchFireworks();
+
+    document.addEventListener('click',      e => spawnSparkles(e.clientX, e.clientY));
+    document.addEventListener('touchstart', e => {
+        const t = e.touches[0];
+        spawnSparkles(t.clientX, t.clientY);
+    }, { passive: true });
+}
+</script>
+</body>
+</html>
